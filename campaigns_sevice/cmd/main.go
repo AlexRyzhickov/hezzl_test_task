@@ -101,7 +101,7 @@ func main() {
 
 	router.Group(func(router chi.Router) {
 		registerHandler(router, &handler.CreateItemHandler{Service: s})
-		registerHandler(router, &handler.ReadItemHandler{Service: s})
+		//registerHandler(router, &handler.ReadItemHandler{Service: s})
 		registerHandler(router, &handler.ListItemsHandler{Service: s})
 		registerHandler(router, &handler.UpdateItemHandler{Service: s})
 		registerHandler(router, &handler.DeleteItemHandler{Service: s})

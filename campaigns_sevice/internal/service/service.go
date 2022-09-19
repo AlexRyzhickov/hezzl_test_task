@@ -2,9 +2,9 @@ package service
 
 import (
 	"context"
-	"hezzl_test_task/internal/models"
-
+	"github.com/pkg/errors"
 	"gorm.io/gorm"
+	"hezzl_test_task/internal/models"
 )
 
 type Service struct {
@@ -18,21 +18,23 @@ func NewService(db *gorm.DB) *Service {
 }
 
 func (s Service) CreateItem(ctx context.Context, model *models.Item) error {
-	return s.db.FirstOrCreate(model).Error
+	return s.db.Create(model).Error
 }
 
 func (s Service) DeleteItem(ctx context.Context, id, campaignId int) error {
-	return s.db.Delete(&models.Item{}).Error
-}
-
-func (s Service) ReadItem(ctx context.Context, id, campaignId int) (*models.Item, error) {
-	return nil, nil
+	tx := s.db.Delete(&models.Item{Id: id, CampaignId: campaignId})
+	if tx.RowsAffected == 0 {
+		return errors.New("Object for removing was not found")
+	}
+	return tx.Error
 }
 
 func (s Service) ReadItems(ctx context.Context) (*[]models.Item, error) {
-	return nil, nil
+	findContacts := []models.Item{}
+	err := s.db.Find(&findContacts).Error
+	return &findContacts, err
 }
 
-func (s Service) UpdateItem(ctx context.Context, model *models.Item) error {
-	return nil
+func (s Service) UpdateItem(ctx context.Context, values map[string]interface{}) error {
+	return s.db.Model(&models.Item{}).Updates(values).Error
 }

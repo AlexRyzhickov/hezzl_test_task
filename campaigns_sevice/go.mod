@@ -6,6 +6,7 @@ require (
 	github.com/caarlos0/env/v6 v6.10.1
 	github.com/go-chi/chi/v5 v5.0.7
 	github.com/go-chi/cors v1.2.1
+	github.com/pkg/errors v0.8.1
 	gorm.io/driver/postgres v1.3.9
 	gorm.io/gorm v1.23.9
 )
