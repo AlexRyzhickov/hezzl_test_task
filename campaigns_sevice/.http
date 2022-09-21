@@ -8,17 +8,34 @@ POST http://127.0.0.1:8080/item/create
 Content-Type: application/json
 
 {
-  "id": 2,
-  "campaign_id": 6,
-  "name": "string",
-  "description": "string",
+  "id": 1,
+  "campaign_id": 5,
+  "name": "name",
+  "description": "desc",
   "priority": 1,
   "removed": false
 }
 
 ###
 
-DELETE http://127.0.0.1:8080/item/remove/id/2/campaignId/6
+DELETE http://127.0.0.1:8080/item/remove/id/1/campaignId/2
+
+###
+
+PATCH http://127.0.0.1:8080/item/update
+Content-Type: application/json
+
+{
+  "id": 1,
+  "campaign_id": 4,
+  "name": "Mike",
+  "description": "super_patch",
+  "priority": 1,
+  "removed": false
+}
+
+
+###
 
 #GET http://127.0.0.1:8080/order/9784bbb2-b0ee-47dd-bcef-b5af1c758762
 #

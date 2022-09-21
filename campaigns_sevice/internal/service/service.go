@@ -22,7 +22,8 @@ func (s Service) CreateItem(ctx context.Context, model *models.Item) error {
 }
 
 func (s Service) DeleteItem(ctx context.Context, id, campaignId int) error {
-	tx := s.db.Delete(&models.Item{Id: id, CampaignId: campaignId})
+	item := models.Item{Id: id, CampaignId: campaignId}
+	tx := s.db.Delete(&item)
 	if tx.RowsAffected == 0 {
 		return errors.New("Object for removing was not found")
 	}
@@ -35,6 +36,7 @@ func (s Service) ReadItems(ctx context.Context) (*[]models.Item, error) {
 	return &findContacts, err
 }
 
-func (s Service) UpdateItem(ctx context.Context, values map[string]interface{}) error {
-	return s.db.Model(&models.Item{}).Updates(values).Error
+func (s Service) UpdateItem(ctx context.Context, id, campaignId int, values map[string]interface{}) error {
+	item := models.Item{Id: id, CampaignId: campaignId}
+	return s.db.Model(&item).Updates(values).Error
 }

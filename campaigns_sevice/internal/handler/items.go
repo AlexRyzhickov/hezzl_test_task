@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/go-chi/chi/v5"
 	"hezzl_test_task/internal/models"
 	"log"
@@ -115,7 +116,7 @@ type UpdateItemHandler struct {
 }
 
 type UpdateItemService interface {
-	UpdateItem(ctx context.Context, values map[string]interface{}) error
+	UpdateItem(ctx context.Context, id, campaignId int, values map[string]interface{}) error
 }
 
 func (h *UpdateItemHandler) Method() string {
@@ -127,5 +128,23 @@ func (h *UpdateItemHandler) Path() string {
 }
 
 func (h *UpdateItemHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-
+	values := make(map[string]interface{})
+	err := json.NewDecoder(r.Body).Decode(&values)
+	fmt.Println(values)
+	id, ok := values["id"]
+	campaignId, ok := values["campaign_id"]
+	_, _, _ = ok, id, campaignId
+	delete(values, "id")
+	delete(values, "campaign_id")
+	if err != nil {
+		log.Println(err)
+		writeResponse(w, http.StatusBadRequest, models.Error{Error: "Bad request"})
+		return
+	}
+	err = h.Service.UpdateItem(r.Context(), int(id.(float64)), int(campaignId.(float64)), values)
+	if err != nil {
+		log.Println(err)
+		writeResponse(w, http.StatusBadRequest, models.Error{Error: "Internal server error"})
+		return
+	}
 }
