@@ -5,9 +5,10 @@ import (
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 	"hezzl_test_task/internal/models"
-	"log"
 	"strconv"
 )
+
+const NotFoundError = "errors.item.notFound"
 
 type Service struct {
 	db   *gorm.DB
@@ -49,11 +50,11 @@ func (s Service) CreateItem(ctx context.Context, item *models.Item) error {
 func (s Service) DeleteItem(ctx context.Context, id, campaignId int) error {
 	item := models.Item{Id: id, CampaignId: campaignId}
 	tx := s.db.Delete(&item)
-	if tx.RowsAffected == 0 {
-		return errors.New("Object for removing was not found")
-	}
 	if tx.Error != nil {
-		return nil
+		return tx.Error
+	}
+	if tx.RowsAffected == 0 {
+		return errors.New(NotFoundError)
 	}
 	key := calculateKey(id, campaignId)
 	err := s.repo.Delete(ctx, key)
@@ -71,11 +72,14 @@ func (s Service) ReadItems(ctx context.Context) (*[]models.Item, error) {
 
 func (s Service) UpdateItem(ctx context.Context, id, campaignId int, values map[string]interface{}) (*models.Item, error) {
 	item := models.Item{Id: id, CampaignId: campaignId}
-	err := s.db.Model(&item).Updates(values).Error
-	if err != nil {
-		return nil, err
+	tx := s.db.Model(&item).Updates(values)
+	if tx.Error != nil {
+		return nil, tx.Error
 	}
-	err = storeDataInRedis(ctx, id, campaignId, &(s.repo), item)
+	if tx.RowsAffected == 0 {
+		return nil, errors.New(NotFoundError)
+	}
+	err := storeDataInRedis(ctx, id, campaignId, &(s.repo), item)
 	if err != nil {
 		return nil, err
 	}
@@ -85,19 +89,20 @@ func (s Service) UpdateItem(ctx context.Context, id, campaignId int, values map[
 func (s Service) ReadItem(ctx context.Context, id, campaignId int) (*models.Item, error) {
 	item, ok := s.repo.Load(calculateKey(id, campaignId))
 	if ok == true {
-		log.Println("From redis")
 		return &item, nil
 	}
 	item = models.Item{Id: id, CampaignId: campaignId}
-	err := s.db.Find(&item).Error
+	tx := s.db.Find(&item)
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+	if tx.RowsAffected == 0 {
+		return nil, errors.New(NotFoundError)
+	}
+	err := s.repo.Store(ctx, calculateKey(id, campaignId), item)
 	if err != nil {
 		return nil, err
 	}
-	err = s.repo.Store(ctx, calculateKey(id, campaignId), item)
-	if err != nil {
-		return nil, err
-	}
-	log.Println("From db")
 	return &item, nil
 }
 

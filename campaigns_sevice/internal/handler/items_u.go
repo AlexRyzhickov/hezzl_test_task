@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"github.com/go-chi/chi/v5"
 	"hezzl_test_task/internal/models"
+	"hezzl_test_task/internal/service"
+	"hezzl_test_task/internal/utils"
 	"log"
 	"net/http"
 	"strconv"
@@ -49,7 +51,11 @@ func (h *UpdateItemHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	item, err := h.Service.UpdateItem(r.Context(), id, campaignId, values)
 	if err != nil {
 		log.Println(err)
-		writeResponse(w, http.StatusBadRequest, models.Error{Error: "Internal server error"})
+		if err.Error() == service.NotFoundError {
+			writeResponse(w, http.StatusNotFound, utils.NotFoundMsg())
+			return
+		}
+		writeResponse(w, http.StatusInternalServerError, models.Error{Error: "Internal server error"})
 		return
 	}
 	writeResponse(w, http.StatusOK, item)

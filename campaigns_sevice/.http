@@ -4,7 +4,7 @@ GET http://127.0.0.1:8080/item/list
 
 ###
 
-GET http://127.0.0.1:8080/item/id/20/campaignId/1
+GET http://127.0.0.1:8080/item/id/29/campaignId/100
 
 ###
 
