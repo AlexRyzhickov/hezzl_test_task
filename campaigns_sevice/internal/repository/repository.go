@@ -12,17 +12,20 @@ type RedisCache struct {
 	*redis.Client
 }
 
-func (c *RedisCache) Load(key string) (models.Item, error) {
-	res := models.Item{}
+func (c *RedisCache) Load(key string) (models.Item, bool) {
+	item := models.Item{}
 	val, err := c.Get(context.Background(), key).Result()
-	if err != nil {
-		return res, err
+	if err == redis.Nil {
+		return item, false
 	}
-	err = json.Unmarshal([]byte(val), &res)
 	if err != nil {
-		return res, err
+		return item, false
 	}
-	return res, err
+	err = json.Unmarshal([]byte(val), &item)
+	if err != nil {
+		return item, false
+	}
+	return item, true
 }
 
 func (c *RedisCache) Store(ctx context.Context, key string, value models.Item) error {

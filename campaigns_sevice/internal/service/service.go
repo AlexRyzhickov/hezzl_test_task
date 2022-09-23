@@ -5,6 +5,7 @@ import (
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 	"hezzl_test_task/internal/models"
+	"log"
 	"strconv"
 )
 
@@ -14,7 +15,7 @@ type Service struct {
 }
 
 type Repository interface {
-	Load(string) (models.Item, error)
+	Load(string) (models.Item, bool)
 	Store(context.Context, string, models.Item) error
 	Delete(ctx context.Context, key string) error
 }
@@ -79,6 +80,25 @@ func (s Service) UpdateItem(ctx context.Context, id, campaignId int, values map[
 		return nil, err
 	}
 	return &item, err
+}
+
+func (s Service) ReadItem(ctx context.Context, id, campaignId int) (*models.Item, error) {
+	item, ok := s.repo.Load(calculateKey(id, campaignId))
+	if ok == true {
+		log.Println("From redis")
+		return &item, nil
+	}
+	item = models.Item{Id: id, CampaignId: campaignId}
+	err := s.db.Find(&item).Error
+	if err != nil {
+		return nil, err
+	}
+	err = s.repo.Store(ctx, calculateKey(id, campaignId), item)
+	if err != nil {
+		return nil, err
+	}
+	log.Println("From db")
+	return &item, nil
 }
 
 func calculateKey(id, campaignId int) string {
