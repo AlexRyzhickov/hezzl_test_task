@@ -42,6 +42,7 @@ func (h *ReadItemsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	item, err := h.Service.ReadItem(r.Context(), id, campaignId)
 	if err != nil {
+		log.Println(err)
 		if err.Error() == service.NotFoundError {
 			writeResponse(w, http.StatusNotFound, utils.NotFoundMsg())
 			return

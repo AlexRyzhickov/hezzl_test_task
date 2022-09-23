@@ -32,7 +32,7 @@ func connectDB(cfg *config.Config) (*gorm.DB, error) {
 
 func connectRedis(cfg *config.Config) *redis.Client {
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
+		Addr:     cfg.RedisAddr,
 		Password: "",
 		DB:       0,
 	})
