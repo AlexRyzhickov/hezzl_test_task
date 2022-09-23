@@ -3,8 +3,10 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/go-redis/redis/v8"
 	"hezzl_test_task/internal/config"
 	"hezzl_test_task/internal/handler"
+	repository "hezzl_test_task/internal/repository"
 	"log"
 	"net/http"
 	"os"
@@ -18,7 +20,6 @@ import (
 	"gorm.io/gorm"
 
 	"hezzl_test_task/internal/service"
-	//"hezzl_test_task/internal/subscribe"
 )
 
 func connectDB(cfg *config.Config) (*gorm.DB, error) {
@@ -27,6 +28,15 @@ func connectDB(cfg *config.Config) (*gorm.DB, error) {
 		return nil, err
 	}
 	return db, nil
+}
+
+func connectRedis(cfg *config.Config) *redis.Client {
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "",
+		DB:       0,
+	})
+	return rdb
 }
 
 type Handler interface {
@@ -69,6 +79,18 @@ func main() {
 		log.Fatal("failed to connect database", err)
 	}
 
+	c := connectRedis(cfg)
+	repo := &repository.RedisCache{Client: c}
+
+	//f, err := os.OpenFile("info.log", os.O_RDWR|os.O_CREATE, 0666)
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+	//defer f.Close()
+
+	//infoLog := log.New(f, "INFO\t", log.Ldate|log.Ltime)
+	//infoLog.Println("hello")
+
 	/*nc, err := nats.Connect(nats.DefaultURL)
 	if err != nil {
 		log.Fatal("failed to connect nats streaming", err)
@@ -86,12 +108,14 @@ func main() {
 		log.Fatal("failed to subscribe", err)
 	}*/
 
-	/*c := cache.InitializeMemoryCache()
+	/*c := repository.InitializeMemoryCache()
 	if err = fillCacheFromDatabase(c, db); err != nil {
 		log.Fatal(err)
 	}*/
 
-	s := service.NewService(db)
+	log.Println()
+
+	s := service.NewService(db, repo)
 
 	router := chi.NewRouter()
 	router.Use(middleware.RequestID)
@@ -101,7 +125,6 @@ func main() {
 
 	router.Group(func(router chi.Router) {
 		registerHandler(router, &handler.CreateItemHandler{Service: s})
-		//registerHandler(router, &handler.ReadItemHandler{Service: s})
 		registerHandler(router, &handler.ListItemsHandler{Service: s})
 		registerHandler(router, &handler.UpdateItemHandler{Service: s})
 		registerHandler(router, &handler.DeleteItemHandler{Service: s})

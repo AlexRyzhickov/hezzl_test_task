@@ -6,12 +6,15 @@ require (
 	github.com/caarlos0/env/v6 v6.10.1
 	github.com/go-chi/chi/v5 v5.0.7
 	github.com/go-chi/cors v1.2.1
-	github.com/pkg/errors v0.8.1
+	github.com/go-redis/redis/v8 v8.11.5
+	github.com/pkg/errors v0.9.1
 	gorm.io/driver/postgres v1.3.9
 	gorm.io/gorm v1.23.9
 )
 
 require (
+	github.com/cespare/xxhash/v2 v2.1.2 // indirect
+	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.12.1 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect

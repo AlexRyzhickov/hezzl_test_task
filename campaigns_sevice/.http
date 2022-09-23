@@ -4,41 +4,26 @@ GET http://127.0.0.1:8080/item/list
 
 ###
 
-POST http://127.0.0.1:8080/item/create
+POST http://127.0.0.1:8080/item/create/1
 Content-Type: application/json
 
 {
-  "id": 1,
-  "campaign_id": 5,
-  "name": "name",
-  "description": "desc",
-  "priority": 1,
-  "removed": false
+  "name": "Alex"
 }
 
 ###
 
-DELETE http://127.0.0.1:8080/item/remove/id/1/campaignId/2
+DELETE http://127.0.0.1:8080/item/remove/id/24/campaignId/1
 
 ###
 
-PATCH http://127.0.0.1:8080/item/update
+PATCH http://127.0.0.1:8080/item/update/id/19/campaignId/1
 Content-Type: application/json
 
 {
-  "id": 1,
-  "campaign_id": 4,
-  "name": "Mike",
+  "name": "Yui",
   "description": "super_patch",
   "priority": 1,
   "removed": false
 }
 
-
-###
-
-#GET http://127.0.0.1:8080/order/9784bbb2-b0ee-47dd-bcef-b5af1c758762
-#
-####
-#
-#GET http://127.0.0.1:8080/orders

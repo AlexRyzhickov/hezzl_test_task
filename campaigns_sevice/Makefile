@@ -15,6 +15,11 @@ run-db:
 		-e POSTGRES_PASSWORD=postgres \
 		postgres:12
 
+.PHONY: run-redis
+run-redis:
+	@docker run -p 6379:6379 --name some-redis -d redis
+
+
 .PHONY: run-service
 run-service:
 	@export PORT=8080 && export SUBJECT=foo && go run ./cmd/main.go

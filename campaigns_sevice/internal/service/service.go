@@ -8,16 +8,30 @@ import (
 )
 
 type Service struct {
-	db *gorm.DB
+	db   *gorm.DB
+	repo Repository
 }
 
-func NewService(db *gorm.DB) *Service {
+type Repository interface {
+	Load(string) ([]models.Item, error)
+	Store(context.Context, string, []models.Item) error
+}
+
+func NewService(db *gorm.DB, repo Repository) *Service {
 	return &Service{
-		db: db,
+		db:   db,
+		repo: repo,
 	}
 }
 
 func (s Service) CreateItem(ctx context.Context, model *models.Item) error {
+	priority := 0
+	row := s.db.Table("items").Select("max(priority)").Row()
+	err := row.Scan(&priority)
+	if err != nil {
+		priority = 0
+	}
+	model.Priority = priority + 1
 	return s.db.Create(model).Error
 }
 
@@ -31,12 +45,19 @@ func (s Service) DeleteItem(ctx context.Context, id, campaignId int) error {
 }
 
 func (s Service) ReadItems(ctx context.Context) (*[]models.Item, error) {
-	findContacts := []models.Item{}
-	err := s.db.Find(&findContacts).Error
-	return &findContacts, err
+	items, err := s.repo.Load("items")
+	if err != nil {
+		return &items, nil
+	}
+	items = []models.Item{}
+	err = s.db.Find(&items).Error
+	if err == nil {
+		err = s.repo.Store(ctx, "items", items)
+	}
+	return &items, err
 }
 
-func (s Service) UpdateItem(ctx context.Context, id, campaignId int, values map[string]interface{}) error {
+func (s Service) UpdateItem(ctx context.Context, id, campaignId int, values map[string]interface{}) (*models.Item, error) {
 	item := models.Item{Id: id, CampaignId: campaignId}
-	return s.db.Model(&item).Updates(values).Error
+	return &item, s.db.Model(&item).Updates(values).Error
 }
