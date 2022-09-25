@@ -1,6 +1,9 @@
 package utils
 
-import "hezzl_test_task/internal/service"
+import (
+	"github.com/nats-io/nats.go"
+	"hezzl_test_task/internal/service"
+)
 
 type notFoundMsgStruct struct {
 	Code    int         `json:"code"`
@@ -14,4 +17,20 @@ func NotFoundMsg() interface{} {
 		Message: service.NotFoundError,
 		Details: struct{}{},
 	}
+}
+
+type Logger struct {
+	nc *nats.Conn
+}
+
+func InitLogger(nc *nats.Conn) Logger {
+	return Logger{nc: nc}
+}
+
+func (l Logger) Write(p []byte) (int, error) {
+	err := l.nc.Publish("foo", p)
+	if err != nil {
+		return 0, err
+	}
+	return len(p), nil
 }

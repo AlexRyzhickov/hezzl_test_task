@@ -3,16 +3,24 @@ package handler
 import (
 	"context"
 	"github.com/go-chi/chi/v5"
+	"github.com/rs/zerolog"
 	"hezzl_test_task/internal/models"
 	"hezzl_test_task/internal/service"
 	"hezzl_test_task/internal/utils"
-	"log"
 	"net/http"
 	"strconv"
 )
 
 type DeleteItemHandler struct {
 	Service DeleteItemService
+	logger  *zerolog.Logger
+}
+
+func NewDeleteItemHandler(s DeleteItemService, logger *zerolog.Logger) *DeleteItemHandler {
+	return &DeleteItemHandler{
+		Service: s,
+		logger:  logger,
+	}
 }
 
 type DeleteItemService interface {
@@ -30,19 +38,19 @@ func (h *DeleteItemHandler) Path() string {
 func (h *DeleteItemHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
-		log.Println(err)
+		h.logger.Error().Err(err).Msg("")
 		writeResponse(w, http.StatusBadRequest, models.Error{Error: "Bad request"})
 		return
 	}
 	campaignId, err := strconv.Atoi(chi.URLParam(r, "campaignId"))
 	if err != nil {
-		log.Println(err)
+		h.logger.Error().Err(err).Msg("")
 		writeResponse(w, http.StatusBadRequest, models.Error{Error: "Bad request"})
 		return
 	}
 	err = h.Service.DeleteItem(r.Context(), id, campaignId)
 	if err != nil {
-		log.Println(err)
+		h.logger.Error().Err(err).Msg("")
 		if err.Error() == service.NotFoundError {
 			writeResponse(w, http.StatusNotFound, utils.NotFoundMsg())
 			return

@@ -3,19 +3,22 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-redis/redis/v8"
+	"github.com/nats-io/nats.go"
+	"github.com/rs/zerolog/log"
 	"hezzl_test_task/internal/config"
 	"hezzl_test_task/internal/handler"
 	repository "hezzl_test_task/internal/repository"
-	"log"
+	"hezzl_test_task/internal/utils"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"github.com/rs/zerolog"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
@@ -49,7 +52,7 @@ func registerHandler(router chi.Router, handler Handler) {
 	router.Method(handler.Method(), handler.Path(), handler)
 }
 
-func connectionsClosedForServer(server *http.Server) chan struct{} {
+func connectionsClosedForServer(server *http.Server, logger *zerolog.Logger) chan struct{} {
 	connectionsClosed := make(chan struct{})
 	go func() {
 		shutdown := make(chan os.Signal, 1)
@@ -59,9 +62,9 @@ func connectionsClosedForServer(server *http.Server) chan struct{} {
 
 		ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
 		defer cancel()
-		log.Println("Closing connections")
+		logger.Info().Msg("Closing connections")
 		if err := server.Shutdown(ctx); err != nil {
-			log.Println(err)
+			logger.Error().Err(err).Msg("")
 		}
 		close(connectionsClosed)
 	}()
@@ -69,66 +72,40 @@ func connectionsClosedForServer(server *http.Server) chan struct{} {
 }
 
 func main() {
+	nc, err := nats.Connect(nats.DefaultURL)
+	if err != nil {
+		log.Fatal().Err(err).Msg("")
+	}
+	defer nc.Close()
+
+	l := utils.InitLogger(nc)
+	logger := zerolog.New(l /*os.Stdout*/).With().Timestamp().Logger()
+
 	cfg, err := config.New()
 	if err != nil {
-		log.Fatal(err)
+		logger.Fatal().Err(err).Msg("")
 	}
 
 	db, err := connectDB(cfg)
 	if err != nil {
-		log.Fatal("failed to connect database", err)
+		logger.Fatal().Err(err).Msg("failed to connect database")
 	}
 
 	c := connectRedis(cfg)
-	repo := &repository.RedisCache{Client: c}
-
-	//f, err := os.OpenFile("info.log", os.O_RDWR|os.O_CREATE, 0666)
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-	//defer f.Close()
-
-	//infoLog := log.New(f, "INFO\t", log.Ldate|log.Ltime)
-	//infoLog.Println("hello")
-
-	/*nc, err := nats.Connect(nats.DefaultURL)
-	if err != nil {
-		log.Fatal("failed to connect nats streaming", err)
-	}
-	defer nc.Close()
-
-	_, err = nc.Subscribe("foo", func(m *nats.Msg) {
-		log.Printf("Received a message: %s\n", string(m.Data))
-		if err := subscribe.ProcessOrder(db, m); err != nil {
-			log.Println(err)
-		}
-	})
-
-	if err != nil {
-		log.Fatal("failed to subscribe", err)
-	}*/
-
-	/*c := repository.InitializeMemoryCache()
-	if err = fillCacheFromDatabase(c, db); err != nil {
-		log.Fatal(err)
-	}*/
-
-	log.Println()
-
-	s := service.NewService(db, repo)
+	r := &repository.RedisCache{Client: c}
+	s := service.NewService(db, r)
 
 	router := chi.NewRouter()
-	router.Use(middleware.RequestID)
-	router.Use(middleware.Logger)
+	router.Use(middleware.RequestLogger(&handler.LogFormatter{Logger: &logger}))
 	router.Use(middleware.Recoverer)
 	router.Use(cors.AllowAll().Handler)
 
 	router.Group(func(router chi.Router) {
-		registerHandler(router, &handler.CreateItemHandler{Service: s})
-		registerHandler(router, &handler.ReadItemsHandler{Service: s})
-		registerHandler(router, &handler.ListItemsHandler{Service: s})
-		registerHandler(router, &handler.UpdateItemHandler{Service: s})
-		registerHandler(router, &handler.DeleteItemHandler{Service: s})
+		registerHandler(router, handler.NewCreateItemHandler(s, &logger))
+		registerHandler(router, handler.NewReadItemsHandler(s, &logger))
+		registerHandler(router, handler.NewListItemsHandler(s, &logger))
+		registerHandler(router, handler.NewUpdateItemHandler(s, &logger))
+		registerHandler(router, handler.NewDeleteItemHandler(s, &logger))
 	})
 
 	addr := fmt.Sprintf(":%s", cfg.Port)
@@ -137,10 +114,10 @@ func main() {
 		Handler: router,
 	}
 
-	connectionsClosed := connectionsClosedForServer(&server)
-	log.Println("Server is listening on " + addr)
+	connectionsClosed := connectionsClosedForServer(&server, &logger)
+	logger.Info().Msg("Server is listening on " + addr)
 	if err := server.ListenAndServe(); err != http.ErrServerClosed {
-		log.Println(err)
+		logger.Error().Err(err).Msg("")
 	}
 	<-connectionsClosed
 }

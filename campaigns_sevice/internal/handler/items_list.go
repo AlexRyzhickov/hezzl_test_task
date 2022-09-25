@@ -2,12 +2,21 @@ package handler
 
 import (
 	"context"
+	"github.com/rs/zerolog"
 	"hezzl_test_task/internal/models"
 	"net/http"
 )
 
 type ListItemsHandler struct {
 	Service ListItemsService
+	logger  *zerolog.Logger
+}
+
+func NewListItemsHandler(s ListItemsService, logger *zerolog.Logger) *ListItemsHandler {
+	return &ListItemsHandler{
+		Service: s,
+		logger:  logger,
+	}
 }
 
 type ListItemsService interface {
@@ -25,6 +34,7 @@ func (h *ListItemsHandler) Path() string {
 func (h *ListItemsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	list, err := h.Service.ReadItems(r.Context())
 	if err != nil {
+		h.logger.Error().Err(err).Msg("")
 		writeResponse(w, http.StatusInternalServerError, models.Error{Error: "Internal server error"})
 		return
 	}

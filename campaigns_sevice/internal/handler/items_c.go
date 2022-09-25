@@ -4,14 +4,23 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/go-chi/chi/v5"
+	"github.com/rs/zerolog"
 	"hezzl_test_task/internal/models"
-	"log"
+
 	"net/http"
 	"strconv"
 )
 
 type CreateItemHandler struct {
 	Service CreateItemService
+	logger  *zerolog.Logger
+}
+
+func NewCreateItemHandler(s CreateItemService, logger *zerolog.Logger) *CreateItemHandler {
+	return &CreateItemHandler{
+		Service: s,
+		logger:  logger,
+	}
 }
 
 type CreateItemService interface {
@@ -29,20 +38,20 @@ func (h *CreateItemHandler) Path() string {
 func (h *CreateItemHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	campaignId, err := strconv.Atoi(chi.URLParam(r, "campaignId"))
 	if err != nil {
-		log.Println(err)
+		h.logger.Error().Err(err).Msg("")
 		writeResponse(w, http.StatusBadRequest, models.Error{Error: "Bad request"})
 		return
 	}
 	values := make(map[string]interface{})
 	err = json.NewDecoder(r.Body).Decode(&values)
 	if err != nil {
-		log.Println(err)
+		h.logger.Error().Err(err).Msg("")
 		writeResponse(w, http.StatusBadRequest, models.Error{Error: "Bad request"})
 		return
 	}
 	name, ok := values["name"].(string)
 	if !ok {
-		log.Println(err)
+		h.logger.Error().Err(err).Msg("")
 		writeResponse(w, http.StatusBadRequest, models.Error{Error: "Bad request"})
 		return
 	}
@@ -51,7 +60,7 @@ func (h *CreateItemHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	item.Name = name
 	err = h.Service.CreateItem(r.Context(), item)
 	if err != nil {
-		log.Println(err)
+		h.logger.Error().Err(err).Msg("")
 		writeResponse(w, http.StatusInternalServerError, models.Error{Error: "Internal server error"})
 		return
 	}

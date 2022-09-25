@@ -3,16 +3,24 @@ package handler
 import (
 	"context"
 	"github.com/go-chi/chi/v5"
+	"github.com/rs/zerolog"
 	"hezzl_test_task/internal/models"
 	"hezzl_test_task/internal/service"
 	"hezzl_test_task/internal/utils"
-	"log"
 	"net/http"
 	"strconv"
 )
 
 type ReadItemsHandler struct {
 	Service ReadItemsService
+	logger  *zerolog.Logger
+}
+
+func NewReadItemsHandler(s ReadItemsService, logger *zerolog.Logger) *ReadItemsHandler {
+	return &ReadItemsHandler{
+		Service: s,
+		logger:  logger,
+	}
 }
 
 type ReadItemsService interface {
@@ -30,19 +38,19 @@ func (h *ReadItemsHandler) Path() string {
 func (h *ReadItemsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
-		log.Println(err)
+		h.logger.Error().Err(err).Msg("")
 		writeResponse(w, http.StatusBadRequest, models.Error{Error: "Bad request"})
 		return
 	}
 	campaignId, err := strconv.Atoi(chi.URLParam(r, "campaignId"))
 	if err != nil {
-		log.Println(err)
+		h.logger.Error().Err(err).Msg("")
 		writeResponse(w, http.StatusBadRequest, models.Error{Error: "Bad request"})
 		return
 	}
 	item, err := h.Service.ReadItem(r.Context(), id, campaignId)
 	if err != nil {
-		log.Println(err)
+		h.logger.Error().Err(err).Msg("")
 		if err.Error() == service.NotFoundError {
 			writeResponse(w, http.StatusNotFound, utils.NotFoundMsg())
 			return
