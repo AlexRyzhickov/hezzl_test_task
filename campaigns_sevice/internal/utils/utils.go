@@ -3,6 +3,7 @@ package utils
 import (
 	"github.com/nats-io/nats.go"
 	"hezzl_test_task/internal/service"
+	"log"
 )
 
 type notFoundMsgStruct struct {
@@ -32,5 +33,6 @@ func (l Logger) Write(p []byte) (int, error) {
 	if err != nil {
 		return 0, err
 	}
+	log.Print(string(p))
 	return len(p), nil
 }
