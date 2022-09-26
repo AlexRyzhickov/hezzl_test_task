@@ -43,7 +43,7 @@ func main() {
 	}
 
 	conn, err := clickhouse.Open(&clickhouse.Options{
-		Addr: []string{"127.0.0.1:9000"},
+		Addr: []string{os.Getenv("CLICKHOUSE_ADDR")},
 		Auth: clickhouse.Auth{
 			Database: "default",
 			Username: "default",
@@ -59,7 +59,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	_, err = nc.Subscribe("foo", func(m *nats.Msg) {
+	_, err = nc.Subscribe(os.Getenv("SUBJECT"), func(m *nats.Msg) {
 		err := AsyncInsert(conn, string(m.Data))
 		if err != nil {
 			log.Println(err)

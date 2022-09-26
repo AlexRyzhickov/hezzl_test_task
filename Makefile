@@ -29,4 +29,4 @@ run-campaigns-service:
 
 .PHONY: run-logs-writer
 run-logs-writer:
-	@export SUBJECT=foo && go run ./writer_logs/main.go
+	@export SUBJECT=foo && export CLICKHOUSE_ADDR="127.0.0.1:9000" && go run ./writer_logs/main.go
