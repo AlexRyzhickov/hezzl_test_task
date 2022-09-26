@@ -23,10 +23,10 @@ run-redis:
 run-clickhouse:
 	@docker run -p 9000:9000 -d --name some-clickhouse-server --ulimit nofile=262144:262144 clickhouse/clickhouse-server
 
-.PHONY: run-service
-run-service:
+.PHONY: run-campaigns-service
+run-campaigns-service:
 	@export PORT=8080 && export SUBJECT=foo && go run ./campaigns_sevice/cmd/main.go
 
 .PHONY: run-logs-writer
 run-logs-writer:
-	@go run ./writer_logs/main.go
+	@export SUBJECT=foo && go run ./writer_logs/main.go
