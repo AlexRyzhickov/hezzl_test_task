@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
-	"hezzl_test_task/internal/models"
+	"hezzl_test_task/campaigns_sevice/internal/models"
 	"strconv"
 )
 

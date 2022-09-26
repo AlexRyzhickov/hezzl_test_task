@@ -6,6 +6,7 @@ type Config struct {
 	Port      string `env:"PORT" envDefault:"8080"`
 	DBConn    string `env:"DBConn" envDefault:"host=localhost user=postgres password=postgres dbname=backend port=5432 sslmode=disable"`
 	RedisAddr string `env:"DB_CONN_STRING,notEmpty,unset" envDefault:"localhost:6379"`
+	Subj      string `env:"SUBJECT" envDefault:"foo"`
 }
 
 func New() (*Config, error) {

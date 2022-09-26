@@ -4,7 +4,7 @@ GET http://127.0.0.1:8080/item/list
 
 ###
 
-GET http://127.0.0.1:8080/item/id/29/campaignId/100
+GET http://127.0.0.1:8080/item/id/27/campaignId/1
 
 ###
 
@@ -17,16 +17,16 @@ Content-Type: application/json
 
 ###
 
-DELETE http://127.0.0.1:8080/item/remove/id/29/campaignId/1
+DELETE http://127.0.0.1:8080/item/remove/id/29/campaignId/100
 
 ###
 
-PATCH http://127.0.0.1:8080/item/update/id/19/campaignId/1
+PATCH http://127.0.0.1:8080/item/update/id/27/campaignId/1
 Content-Type: application/json
 
 {
-  "name": "Yui",
-  "description": "super_patch",
+  "name": "Mike",
+  "description": "super_boule",
   "priority": 1,
   "removed": false
 }

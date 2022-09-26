@@ -3,7 +3,7 @@ package handler
 import (
 	"context"
 	"github.com/rs/zerolog"
-	"hezzl_test_task/internal/models"
+	"hezzl_test_task/campaigns_sevice/internal/models"
 	"net/http"
 )
 

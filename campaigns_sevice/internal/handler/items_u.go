@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"github.com/go-chi/chi/v5"
 	"github.com/rs/zerolog"
-	"hezzl_test_task/internal/models"
-	"hezzl_test_task/internal/service"
-	"hezzl_test_task/internal/utils"
+	"hezzl_test_task/campaigns_sevice/internal/models"
+	"hezzl_test_task/campaigns_sevice/internal/service"
+	"hezzl_test_task/campaigns_sevice/internal/utils"
 	"net/http"
 	"strconv"
 )

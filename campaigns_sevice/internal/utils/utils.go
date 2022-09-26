@@ -2,7 +2,7 @@ package utils
 
 import (
 	"github.com/nats-io/nats.go"
-	"hezzl_test_task/internal/service"
+	"hezzl_test_task/campaigns_sevice/internal/service"
 	"log"
 )
 

@@ -25,4 +25,8 @@ run-clickhouse:
 
 .PHONY: run-service
 run-service:
-	@export PORT=8080 && export SUBJECT=foo && go run ./cmd/main.go
+	@export PORT=8080 && export SUBJECT=foo && go run ./campaigns_sevice/cmd/main.go
+
+.PHONY: run-logs-writer
+run-logs-writer:
+	@go run ./writer_logs/main.go

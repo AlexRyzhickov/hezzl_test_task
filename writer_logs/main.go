@@ -6,7 +6,7 @@ import (
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 	"github.com/nats-io/nats.go"
-	"hezzl_test_task/consts"
+	"hezzl_test_task/writer_logs/consts"
 	"log"
 	"os"
 	"os/signal"
@@ -69,6 +69,7 @@ func main() {
 		log.Fatal(err)
 	}
 
+	log.Println("Start writing logs in ClickHouse")
 	shutdown := make(chan os.Signal, 1)
 	signal.Notify(shutdown, os.Interrupt, syscall.SIGTERM)
 	defer signal.Stop(shutdown)

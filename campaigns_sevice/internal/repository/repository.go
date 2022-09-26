@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/go-redis/redis/v8"
-	"hezzl_test_task/internal/models"
+	"hezzl_test_task/campaigns_sevice/internal/models"
 	"time"
 )
 

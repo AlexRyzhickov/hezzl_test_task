@@ -7,10 +7,10 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/nats-io/nats.go"
 	"github.com/rs/zerolog/log"
-	"hezzl_test_task/internal/config"
-	"hezzl_test_task/internal/handler"
-	repository "hezzl_test_task/internal/repository"
-	"hezzl_test_task/internal/utils"
+	"hezzl_test_task/campaigns_sevice/internal/config"
+	"hezzl_test_task/campaigns_sevice/internal/handler"
+	repository "hezzl_test_task/campaigns_sevice/internal/repository"
+	"hezzl_test_task/campaigns_sevice/internal/utils"
 	"net/http"
 	"os"
 	"os/signal"
@@ -22,7 +22,7 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
-	"hezzl_test_task/internal/service"
+	"hezzl_test_task/campaigns_sevice/internal/service"
 )
 
 func connectDB(cfg *config.Config) (*gorm.DB, error) {
