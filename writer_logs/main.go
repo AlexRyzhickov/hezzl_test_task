@@ -28,13 +28,7 @@ func createLogsTable(conn driver.Conn) error {
 
 func AsyncInsert(conn driver.Conn, log string) error {
 	ctx := clickhouse.Context(context.Background(), clickhouse.WithStdAsync(false))
-	{
-		err := conn.Exec(ctx, fmt.Sprintf("INSERT INTO logs VALUES ('%s')", log))
-		if err != nil {
-			return err
-		}
-	}
-	return nil
+	return conn.Exec(ctx, fmt.Sprintf("INSERT INTO %s VALUES ('%s')", consts.TableName, log))
 }
 
 func main() {
@@ -45,7 +39,7 @@ func main() {
 	defer nc.Close()
 
 	if err != nil {
-		log.Fatal("failed to subscribe", err)
+		log.Fatal(err)
 	}
 
 	conn, err := clickhouse.Open(&clickhouse.Options{
@@ -59,6 +53,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	err = createLogsTable(conn)
 	if err != nil {
 		log.Fatal(err)
@@ -70,6 +65,9 @@ func main() {
 			log.Println(err)
 		}
 	})
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	shutdown := make(chan os.Signal, 1)
 	signal.Notify(shutdown, os.Interrupt, syscall.SIGTERM)

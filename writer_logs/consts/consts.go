@@ -1,5 +1,9 @@
 package consts
 
+const (
+	TableName = "logs"
+)
+
 const Ddl = `
 		CREATE TABLE logs (
 		    l JSON
