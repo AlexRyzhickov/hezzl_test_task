@@ -29,14 +29,20 @@ func NewService(db *gorm.DB, repo Repository) *Service {
 }
 
 func (s Service) CreateItem(ctx context.Context, item *models.Item) error {
-	priority := 0
-	row := s.db.Table("items").Select("max(priority)").Row()
-	err := row.Scan(&priority)
-	if err != nil {
-		priority = 0
-	}
-	item.Priority = priority + 1
-	err = s.db.Create(item).Error
+	err := s.db.Transaction(func(tx *gorm.DB) error {
+		priority := 0
+		row := s.db.Table("items").Select("max(priority)").Row()
+		err := row.Scan(&priority)
+		if err != nil {
+			priority = 0
+		}
+		item.Priority = priority + 1
+		err = s.db.Create(item).Error
+		if err != nil {
+			return err
+		}
+		return nil
+	})
 	if err != nil {
 		return err
 	}
