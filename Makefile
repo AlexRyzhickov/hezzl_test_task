@@ -19,6 +19,9 @@ run-db:
 run-redis:
 	@docker run -p 6379:6379 --name some-redis -d redis
 
+.PHONY: run-clickhouse
+run-clickhouse:
+	@docker run -p 9000:9000 -d --name some-clickhouse-server --ulimit nofile=262144:262144 clickhouse/clickhouse-server
 
 .PHONY: run-service
 run-service:
